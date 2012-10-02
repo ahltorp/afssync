@@ -1,0 +1,16 @@
+local   base    remote
+0       0       0       N/A
+0       0       1       filen är ny på servern, hämta ner
+0       1       0       filen är borttagen på både servern och klienten, ta bort post
+0       1       1       filen är borttagen på klienten, ta bort på servern (specialhantera om filen ändrad på servern?)
+1       0       0       filen är ny på klienten, skicka upp
+1       0       1       filen har skapats på både servern och klienten samtidigt, kör konflikthantering
+1       1       0       filen är borttagen på servern, flytta lokal fil till karantän (specialhantera om filen ändrad på klienten?)
+1       1       1       filen finns kvar på alla ställen, kör ändringsjämförelse
+
+ändringsjämförelse (0=samma, 1=ändrad):
+local   remote
+0       0               ingen åtgärd
+0       1               hämta filen
+1       0               skicka filen
+1       1               kör konflikthantering
