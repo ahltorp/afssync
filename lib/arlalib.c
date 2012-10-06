@@ -160,6 +160,9 @@ get_cred5(const char *princ, const char *inst, const char *krealm,
     
     kt.ticket = NULL;
     ret = afs_get_cred(context, id, princ, inst, krealm, &kt);
+    if (ret)
+        goto out;
+
     *ct = kt.ct;
 
     if (kt.ticket_len > ticket_len)
@@ -204,7 +207,7 @@ arlalib_get_cred_krb (const char *cell, const char *host,
 	    strlcpy(krealm, cell, REALM_SZ);
 	    strupr(krealm);
 	    
-	    ret = get_cred5("afs", "", krealm, ct, ticket, ticket_len,
+	    ret = get_cred5("afs", NULL, krealm, ct, ticket, ticket_len,
 			    ticket_len_out);
 	    if (ret == 0)
 		return 0;
@@ -217,7 +220,7 @@ arlalib_get_cred_krb (const char *cell, const char *host,
 	if (ret == 0)
 	    return ret;
 	else {
-	    ret = get_cred5("afs", "", krealm,
+	    ret = get_cred5("afs", NULL, krealm,
 			    ct, ticket, ticket_len, ticket_len_out);
 	    if (ret == 0)
 		return ret;
