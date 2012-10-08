@@ -1,6 +1,16 @@
 #!/bin/sh
 # usage: create.sh localpath cell volume
 
+if [ $# != 3 ]; then
+    echo "usage: $0 <local directory> <afs cell> <afs volume>"
+    exit
+fi
+
+if [ -d $1 ]; then
+    echo "$0: Local directory already exists, aborting"
+    exit
+fi
+
 mkdir -p $1/.afssync
 sqlite3 $1/.afssync/db.sqlite <<EOF
 create table if not exists config (seq integer primary key, cell text, volume text);
