@@ -6,11 +6,14 @@ import os
 import sqlite3
 import stat
 import tempfile
+import sys
 
 from util import *
 
-
-basepath = "/tmp/testsync"
+if len(sys.argv) != 2:
+    print >> sys.stderr, "usage:", sys.argv[0], "<local directory>"
+    sys.exit(1)
+basepath = sys.argv[1]
 
 conn = sqlite3.connect(basepath + "/.afssync/db.sqlite")
 conn.row_factory = sqlite3.Row
