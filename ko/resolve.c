@@ -43,10 +43,6 @@
 #include <resolv.h>
 #endif
 
-#include <nameser.h>
-
-#include <dns_util.h>
-
 #include "resolve.h"
 
 RCSID("$Id: resolve.c,v 1.3 2008/03/24 14:29:27 ahltorp Exp $");
