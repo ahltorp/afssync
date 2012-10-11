@@ -13,8 +13,8 @@
 #define HAVE_DN_EXPAND 1
 #define HAVE_RESOLV_H 1
 #define HAVE_ARPA_NAMESER_H 1
-#define HAVE_NET_IF_DL_H 1
-#define HAVE_NET_IF_TYPES_H 1
+
+#define HAVE_SCHED_YIELD 1
 
 #define PTHREADS_LWP 1
 

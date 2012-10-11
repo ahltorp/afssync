@@ -3,8 +3,12 @@ CC = clang
 HEIMDAL=/usr/heimdal
 
 # Mac OS X 10.7
-OS_CFLAGS = -arch x86_64 -I/System/Library/Frameworks/Python.framework/Versions/2.7/include/python2.7
+OS_CFLAGS = -arch x86_64 -I/System/Library/Frameworks/Python.framework/Versions/2.7/include/python2.7 -DHAVE_NET_IF_DL_H=1 -DHAVE_NET_IF_TYPES_H=1
 OS_LINKFLAGS = -Wl,-F. -bundle -undefined dynamic_lookup
+
+# Ubuntu 12
+#OS_CFLAGS = -I/usr/include/python2.7 -std=gnu99 -fPIC
+#OS_LINKFLAGS = -pthread -shared -Wl,-O1 -Wl,-Bsymbolic-functions -Wl,-Bsymbolic-functions -Wl,-z,relro
 
 CFLAGS = -g -I . -I include -I rx -I lwp -I bufdir -I rxdef -I ko -I util -I rxkad -I $(HEIMDAL)/include -I lib -DHAVE_CONFIG_H $(OS_CFLAGS)
 
