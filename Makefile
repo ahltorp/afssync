@@ -2,7 +2,7 @@ CC = clang
 
 HEIMDAL=/usr/heimdal
 
-CFLAGS = -g -I roken -I . -I include -I rx -I lwp -I bufdir -I rxdef -I ko -I util -I rxkad -I $(HEIMDAL)/include -I lib -arch x86_64 -I/System/Library/Frameworks/Python.framework/Versions/2.7/include/python2.7
+CFLAGS = -g -I . -I include -I rx -I lwp -I bufdir -I rxdef -I ko -I util -I rxkad -I $(HEIMDAL)/include -I lib -arch x86_64 -I/System/Library/Frameworks/Python.framework/Versions/2.7/include/python2.7 -DHAVE_CONFIG_H
 
 LIBKO=ko/afs_uuid.o \
  ko/afsconf.o ko/misc.o \
@@ -11,8 +11,6 @@ LIBKO=ko/afs_uuid.o \
  ko/vlmisc.o \
  ko/kocell.o ko/resolve.o \
  ko/koerror.o
-
-LIBROKEN = roken/estrdup.o roken/parse_units.o roken/resolve.o roken/strupr.o
 
 LIBLWP = lwp/fasttime.o lwp/plwp.o \
  lwp/iomgr.o lwp/preempt.o \
@@ -34,9 +32,9 @@ LIBUTIL = util/arlamath.o util/list.o util/timeval.o \
  util/hash.o util/localtime_r.o \
  util/heap.o util/log.o util/sha.o
 
-ALLOBJECTS = $(LIBKO) $(LIBROKEN) $(LIBLWP) bufdir/fbuf.o bufdir/fdir.o lib/afskrb5.o lib/arlalib.o cmcb.o $(LIBRX) $(LIBRXDEF) $(LIBRXKAD) $(LIBUTIL) 
+ALLOBJECTS = $(LIBKO) $(LIBLWP) bufdir/fbuf.o bufdir/fdir.o lib/afskrb5.o lib/arlalib.o cmcb.o $(LIBRX) $(LIBRXDEF) $(LIBRXKAD) $(LIBUTIL) 
 
-HEIMDALLIBS = -L$(HEIMDAL)/lib -lkrb5 -lcrypto  -framework CoreFoundation -lresolv -lasn1 -lcom_err
+HEIMDALLIBS = -L$(HEIMDAL)/lib -lkrb5 -lcrypto  -framework CoreFoundation -lresolv -lasn1 -lcom_err -lroken
 
 all: all-objects pythoninterface.o
 	$(CC) -Wl,-F. -bundle -undefined dynamic_lookup -Wl,-F. -arch x86_64 $(ALLOBJECTS) $(HEIMDALLIBS) pythoninterface.o -o arlalow.so

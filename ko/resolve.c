@@ -65,17 +65,17 @@ int
 _ko_resolve_cell(const char *cell, cell_db_entry *dbservers, int max_num, 
 		 int *ret_num, int *lowest_ttl)
 {
-    struct dns_reply *r;
-    struct resource_record *rr;
+    struct rk_dns_reply *r;
+    struct rk_resource_record *rr;
     int i, dbnum;
 
-    r = dns_lookup(cell, "AFSDB");
+    r = rk_dns_lookup(cell, "AFSDB");
     if (r == NULL)
 	return 1;
 
     dbnum = 0;
     for(rr = r->head; rr;rr=rr->next){
-	if(rr->type == T_AFSDB) {
+	if(rr->type == rk_ns_t_afsdb) {
 	    struct mx_record *mx = (struct mx_record*)rr->u.data;
 
 	    if (dbnum >= max_num)
@@ -107,7 +107,7 @@ _ko_resolve_cell(const char *cell, cell_db_entry *dbservers, int max_num,
 	    }
 	}
     }
-    dns_free_data(r);
+    rk_dns_free_data(r);
 
     *ret_num = dbnum;
 
@@ -117,11 +117,11 @@ _ko_resolve_cell(const char *cell, cell_db_entry *dbservers, int max_num,
 int
 _ko_resolve_host(const char *name, cell_db_entry *host)
 {
-    struct resource_record *rr;
-    struct dns_reply *r;
+    struct rk_resource_record *rr;
+    struct rk_dns_reply *r;
     int ret;
 
-    r = dns_lookup(host->name, "A");
+    r = rk_dns_lookup(host->name, "A");
     if (r == NULL)
 	return 1;
 
@@ -134,6 +134,6 @@ _ko_resolve_host(const char *name, cell_db_entry *host)
 	    break;
 	}
     }
-    dns_free_data(r);
+    rk_dns_free_data(r);
     return ret;
 }

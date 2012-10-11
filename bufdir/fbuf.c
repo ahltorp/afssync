@@ -33,7 +33,9 @@
 
 #include "roken.h"
 
+#ifdef RCSID
 RCSID("$Id: fbuf.c,v 1.1.1.1 2008/03/22 16:58:37 ahltorp Exp $") ;
+#endif
 
 #include <stdio.h>
 #include <stdlib.h>

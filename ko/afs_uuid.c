@@ -81,7 +81,9 @@
 
 #include "afs_uuid.h"
 
+#ifdef RCSID
 RCSID("$Id: afs_uuid.c,v 1.1.1.1 2008/03/22 16:58:37 ahltorp Exp $");
+#endif
 
 /*
  *
