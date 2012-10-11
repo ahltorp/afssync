@@ -91,8 +91,6 @@ arla_init(PyObject *self, PyObject *args)
 
 }
 
-static 
-
 static PyObject *
 arla_dbservers(PyObject *self, PyObject *args)
 {
