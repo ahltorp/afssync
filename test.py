@@ -114,6 +114,7 @@ def readbasefiles():
 readbasefiles()
 
 def getlocalfiles(path):
+    path = path.rstrip("/")
     filelist = []
     for root, dirs, files in os.walk(path):
         if not root.startswith(path):
