@@ -2,7 +2,11 @@ CC = clang
 
 HEIMDAL=/usr/heimdal
 
-CFLAGS = -g -I . -I include -I rx -I lwp -I bufdir -I rxdef -I ko -I util -I rxkad -I $(HEIMDAL)/include -I lib -arch x86_64 -I/System/Library/Frameworks/Python.framework/Versions/2.7/include/python2.7 -DHAVE_CONFIG_H
+# Mac OS X 10.7
+OS_CFLAGS = -arch x86_64 -I/System/Library/Frameworks/Python.framework/Versions/2.7/include/python2.7
+OS_LINKFLAGS = -Wl,-F. -bundle -undefined dynamic_lookup
+
+CFLAGS = -g -I . -I include -I rx -I lwp -I bufdir -I rxdef -I ko -I util -I rxkad -I $(HEIMDAL)/include -I lib -DHAVE_CONFIG_H $(OS_CFLAGS)
 
 LIBKO=ko/afs_uuid.o \
  ko/afsconf.o ko/misc.o \
@@ -34,10 +38,10 @@ LIBUTIL = util/arlamath.o util/list.o util/timeval.o \
 
 ALLOBJECTS = $(LIBKO) $(LIBLWP) bufdir/fbuf.o bufdir/fdir.o lib/afskrb5.o lib/arlalib.o cmcb.o $(LIBRX) $(LIBRXDEF) $(LIBRXKAD) $(LIBUTIL) 
 
-HEIMDALLIBS = -L$(HEIMDAL)/lib -lkrb5 -lcrypto  -framework CoreFoundation -lresolv -lasn1 -lcom_err -lroken
+HEIMDALLIBS = -L$(HEIMDAL)/lib -lkrb5 -lcrypto -lresolv -lasn1 -lcom_err -lroken
 
 all: all-objects pythoninterface.o
-	$(CC) -Wl,-F. -bundle -undefined dynamic_lookup -Wl,-F. -arch x86_64 $(ALLOBJECTS) $(HEIMDALLIBS) pythoninterface.o -o arlalow.so
+	$(CC) $(OS_LINKFLAGS) $(ALLOBJECTS) $(HEIMDALLIBS) pythoninterface.o -o arlalow.so
 
 clean:
 	rm $(ALLOBJECTS) pythoninterface.o
