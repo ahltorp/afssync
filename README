@@ -1,0 +1,26 @@
+Afssync is a tool that syncs an AFS volume with a directory on your local disk.
+
+Requirements:
+
+Python 2.6 or newer, but not Python 3
+Heimdal 1.5.2 or newer
+
+
+Installation instructions:
+
+Edit the Makefile:
+     * Comment/uncomment appropriate OS_CFLAGS and OS_LINKFLAGS. Edit if necessary for your OS and python installation.
+     * Set the CC variable to the name of your compiler
+     * Set the HEIMDAL variable to the base of your Heimdal installation
+
+Run "make".
+
+
+To prepare a local directory as a synced directory:
+
+./create.sh <local directory> <afs cell> <afs volume>
+
+
+The sync program is run like this:
+
+./sync.py <local directory>
