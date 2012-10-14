@@ -33,3 +33,18 @@ def getlocalfileinfo(path, direntry):
 def chunks(l, n):
     return [l[i:i+n] for i in range(0, len(l), n)]
 
+def getlocalfiles(path):
+    path = path.rstrip("/")
+    filelist = []
+    for root, dirs, files in os.walk(path):
+        if not root.startswith(path):
+            raise Exception
+        root = root[len(path):]
+        direntry = {"path":root + "/", "name": os.path.basename(root)}
+        direntry.update(getlocalfileinfo(path, direntry))
+        filelist.append(direntry)
+        for filename in files:
+            direntry = {"path":root + "/" + filename, "name":filename}
+            direntry.update(getlocalfileinfo(path, direntry))
+            filelist.append(direntry)
+    return filelist

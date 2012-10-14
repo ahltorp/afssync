@@ -9,6 +9,7 @@ import tempfile
 import sys
 
 from util import *
+from afsutil import *
 
 if len(sys.argv) != 2:
     print >> sys.stderr, "usage:", sys.argv[0], "<local directory>"
@@ -29,52 +30,9 @@ print "Initializing"
 
 arlalow.init()
 
-print "Looking up db servers"
+fs = fileserver(cell, volume)
 
-dbservers = arlalow.dbservers(cell)
-
-print "Got db servers", dbservers
-
-VLDB_SERVICE_ID=52
-FS_SERVICE_ID=1
-
-dbconn = arlalow.rxconn(dbservers[0], 7003, VLDB_SERVICE_ID)
-
-print "Got db connection", dbconn
-
-print volume, cell
-
-vlentry = arlalow.VL_GetEntryByNameN(dbconn, volume)
-
-print "Got vlentry", vlentry
-
-rootfid = (vlentry["ROVolumeId"] if vlentry["roexists"] else vlentry["RWVolumeId"], 1, 1)
-
-print rootfid
-
-fsconn = arlalow.getconnbyaddr(cell, vlentry["firstServer"], 7000, FS_SERVICE_ID)
-
-print "Got fs connection", fsconn
-
-def isdir(fid):
-    return fid[1] % 2 == 1
-
-def traverse_remote_tree(fid, path):
-    dircontents = arlalow.fetchfile(fsconn, fid, 0, 1000000);
-    directory = arlalow.parsedirectory(dircontents, fid)
-    children = []
-    for entry in directory:
-        if isdir(entry["fid"]):
-            if entry["name"] not in [".", ".."]:
-                childFileEntry = traverse_remote_tree(entry["fid"], path + "/" + entry["name"])
-                childFileEntry["name"] = entry["name"]
-                childFileEntry["parent"] = fid
-                children.append(childFileEntry)
-        else:
-            children.append({"name":entry["name"], "fid":entry["fid"], "path":path+"/"+entry["name"], "parent":fid})
-    return {"fid":fid, "status":dircontents["status"], "children":children, "path":path+"/"}
-
-wholetree = traverse_remote_tree(rootfid, "")
+wholetree = fs.traverse_remote_tree(fs.rootfid, "")
 
 print "Fetched tree"
 
@@ -88,11 +46,8 @@ serverfiles = allFileEntriesFromTree(wholetree)
 
 #print serverfiles
 
-status = {}
+status = fs.getstatusforfids([e["fid"] for e in serverfiles])
 
-for chunk in chunks(serverfiles, 50):
-    for f in arlalow.fetchbulkstatus(fsconn, [e["fid"] for e in chunk]):
-        status[f["fid"]] = f["status"]
 for e in serverfiles:
     e["status"] = status[e["fid"]]
 
@@ -113,21 +68,6 @@ def readbasefiles():
 
 readbasefiles()
 
-def getlocalfiles(path):
-    path = path.rstrip("/")
-    filelist = []
-    for root, dirs, files in os.walk(path):
-        if not root.startswith(path):
-            raise Exception
-        root = root[len(path):]
-        direntry = {"path":root + "/", "name": os.path.basename(root)}
-        direntry.update(getlocalfileinfo(path, direntry))
-        filelist.append(direntry)
-        for filename in files:
-            direntry = {"path":root + "/" + filename, "name":filename}
-            direntry.update(getlocalfileinfo(path, direntry))
-            filelist.append(direntry)
-    return filelist
 
 localfiles = [e for e in getlocalfiles(basepath) if not e["path"].startswith("/.afssync/")]
 #print localfiles
@@ -157,14 +97,13 @@ def mode_to_filetype(mode):
 def fetchfile(basepath, serverfile):
     (fd, name) = tempfile.mkstemp(dir=basepath+"/.afssync/fetched")
     fid = serverfile["fid"]
-    contents = arlalow.fetchfile(fsconn, fid, 0, serverfile["status"]["length"])
-    f = os.fdopen(fd, "wb")
-    f.write(contents["contents"])
+
+    (status, checksum) = fs.getfile(fid, serverfile["status"]["length"], os.fdopen(fd, "wb"))
     f.close()
-    assert serverfile["status"]["length"] == contents["status"]["length"]
-    assert serverfile["status"]["dataversion"] == contents["status"]["dataversion"]
-    contents["status"]["checksum"] = checksumcontents(contents["contents"])
-    return (name, contents["status"])
+    assert serverfile["status"]["length"] == status["length"]
+    assert serverfile["status"]["dataversion"] == status["dataversion"]
+    status["checksum"] = checksum
+    return (name, status)
 
 def sendfileandupdate(basepath, name, localfile, parentfid, serverfile=None):
     # XXX creates and uploads directly to final filename.
@@ -174,12 +113,12 @@ def sendfileandupdate(basepath, name, localfile, parentfid, serverfile=None):
     localfiletype = mode_to_filetype(localfile["mode"])
     if localfiletype == 1:
         if serverfile == None:
-            result = arlalow.create(fsconn, parentfid, localfile["name"], localfile["mode"] & 0777, localfile["mtime"])
+            result = fs.fsconn.create(fsconn, parentfid, localfile["name"], localfile["mode"] & 0777, localfile["mtime"])
             fid = result["fid"]
         else:
             fid = serverfile["fid"]
         contents = readwholefile(basepath + "/" + name)
-        status = arlalow.storewholefile(fsconn, fid, contents, localfile["mode"] & 0777, localfile["mtime"])
+        status = arlalow.storewholefile(fs.fsconn, fid, contents, localfile["mode"] & 0777, localfile["mtime"])
         (volume, vnode, unique) = fid
         checksum = checksumcontents(contents)
         cursor.execute('delete from files where path = ?', (name,))
@@ -189,7 +128,7 @@ def sendfileandupdate(basepath, name, localfile, parentfid, serverfile=None):
             print "created file with fid", fid
     elif localfiletype == 2:
         print localfile
-        result = arlalow.mkdir(fsconn, parentfid, localfile["name"], localfile["mode"] & 0777, localfile["mtime"])
+        result = arlalow.mkdir(fs.fsconn, parentfid, localfile["name"], localfile["mode"] & 0777, localfile["mtime"])
         fid = result["fid"]
         status = result["status"]
         (volume, vnode, unique) = fid
@@ -232,7 +171,7 @@ def conflictresolution(basepath, name, localfile, serverfile):
         #(tempname, status) = fetchfile(basepath, serverfile)
         if localfile["mtime"] > serverfile["status"]["modtime"]:
             # XXX check that new name is unused
-            arlalow.rename(fsconn, serverfile["parent"], serverfile["name"], serverfile["parent"], serverfile["name"] + ";serverrenamed-1")
+            arlalow.rename(fs.fsconn, serverfile["parent"], serverfile["name"], serverfile["parent"], serverfile["name"] + ";serverrenamed-1")
         else:
             os.rename(basepath + "/" + name, basepath + "/" + name + ";locallyrenamed-1")
     elif serverfiletype == 2:
@@ -252,13 +191,13 @@ def synconefile(basepath, name, localfile, serverfile, basefile, parentfid):
 #        pass
     elif places == (False, True, True):
         if basefile["filetype"] == 1:
-            arlalow.remove(fsconn, serverfile["parent"], serverfile["name"])
+            arlalow.remove(fs.fsconn, serverfile["parent"], serverfile["name"])
             cursor.execute('delete from files where path = ?', (name,))
             conn.commit()
             readbasefiles()
         elif basefile["filetype"] == 2:
             def removedir():
-                arlalow.rmdir(fsconn, serverfile["parent"], serverfile["name"])
+                arlalow.rmdir(fs.fsconn, serverfile["parent"], serverfile["name"])
                 cursor.execute('delete from files where path = ?', (name,))
                 conn.commit()
                 readbasefiles()
@@ -327,10 +266,10 @@ try:
             continue
         parentpath = os.path.dirname(os.path.normpath(f))
         if parentpath == "/":
-            parentfid = rootfid
+            parentfid = fs.rootfid
         else:
             parentbasefile = basefilesdict[parentpath + "/"]
-            parentfid = (rootfid[0], parentbasefile["vnode"], parentbasefile["uniq"])
+            parentfid = (fs.rootfid[0], parentbasefile["vnode"], parentbasefile["uniq"])
         # print f, parentpath, parentfid
         localfile = localfilesdict.get(f)
         serverfile = serverfilesdict.get(f)
@@ -351,7 +290,7 @@ try:
     for (predicate, action) in delayedtasks:
         action()
 finally:
-    arlalow.giveupallcallbacks(fsconn)
+    arlalow.giveupallcallbacks(fs.fsconn)
 
 #while 1:
 #    print "sleep"
