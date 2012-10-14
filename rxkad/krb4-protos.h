@@ -54,16 +54,16 @@
 #endif
 
 int
-krb4_get_int(void *f, u_int32_t *to, int size, int lsb);
+krb4_get_int(void *f, uint32_t *to, int size, int lsb);
 
 int
-krb4_put_int(u_int32_t from, void *to, size_t rem, int size);
+krb4_put_int(uint32_t from, void *to, size_t rem, int size);
 
 int
-krb4_get_address(void *from, u_int32_t *to);
+krb4_get_address(void *from, uint32_t *to);
 
 int
-krb4_put_address(u_int32_t addr, void *to, size_t rem);
+krb4_put_address(uint32_t addr, void *to, size_t rem);
 
 int
 krb4_put_string(const char *from, void *to, size_t rem);
@@ -90,10 +90,10 @@ decomp_ticket(KTEXT tkt,	/* The ticket to be decoded */
 	      char *pname,	/* Authentication name */
 	      char *pinstance,	/* Principal's instance */
 	      char *prealm,	/* Principal's authentication domain */
-	      u_int32_t *paddress,/* Net address of entity requesting ticket */
+	      uint32_t *paddress,/* Net address of entity requesting ticket */
 	      unsigned char *session, /* Session key inserted in ticket */
 	      int *life,	/* Lifetime of the ticket */
-	      u_int32_t *time_sec, /* Issue time and date */
+	      uint32_t *time_sec, /* Issue time and date */
 	      char *sname,	/* Service name */
 	      char *sinstance,	/* Service instance */
 	      DES_cblock *key,	/* Service's secret key (to decrypt the ticket) */
@@ -107,10 +107,10 @@ krb4_life_to_atime(int life);
 int
 krb4_atime_to_life(char *atime);
 
-int krb_time_to_life(u_int32_t start, u_int32_t end);
+int krb_time_to_life(uint32_t start, uint32_t end);
 
-u_int32_t
-krb4_life_to_time(u_int32_t start, int life_);
+uint32_t
+krb4_life_to_time(uint32_t start, int life_);
 
 #endif /* __KRB4_PROTOS_H */
 

@@ -42,7 +42,7 @@ RCSID("$Id: rw.c,v 1.1 2005/01/17 10:02:39 lha Exp $");
 #include "krb4.h"
 
 int
-krb4_get_int(void *f, u_int32_t *to, int size, int lsb)
+krb4_get_int(void *f, uint32_t *to, int size, int lsb)
 {
     int i;
     unsigned char *from = (unsigned char *)f;
@@ -59,7 +59,7 @@ krb4_get_int(void *f, u_int32_t *to, int size, int lsb)
 }
 
 int
-krb4_put_int(u_int32_t from, void *to, size_t rem, int size)
+krb4_put_int(uint32_t from, void *to, size_t rem, int size)
 {
     int i;
     unsigned char *p = (unsigned char *)to;
@@ -78,7 +78,7 @@ krb4_put_int(u_int32_t from, void *to, size_t rem, int size)
 /* addresses are always sent in network byte order */
 
 int
-krb4_get_address(void *from, u_int32_t *to)
+krb4_get_address(void *from, uint32_t *to)
 {
     unsigned char *p = (unsigned char*)from;
     *to = htonl((p[0] << 24) | (p[1] << 16) | (p[2] << 8) | p[3]);
@@ -86,7 +86,7 @@ krb4_get_address(void *from, u_int32_t *to)
 }
 
 int
-krb4_put_address(u_int32_t addr, void *to, size_t rem)
+krb4_put_address(uint32_t addr, void *to, size_t rem)
 {
     return krb4_put_int(ntohl(addr), to, rem, 4);
 }

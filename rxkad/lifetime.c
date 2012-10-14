@@ -110,8 +110,8 @@ static const int tkt_lifetimes[TKTLIFENUMFIXED] = {
  * TKTLIFEMINFIXED) as an index into the table to extract the lifetime
  * in seconds, which is added to start to produce the end time.
  */
-u_int32_t
-krb4_life_to_time(u_int32_t start, int life_)
+uint32_t
+krb4_life_to_time(uint32_t start, int life_)
 {
     unsigned char life = (unsigned char) life_;
 
@@ -135,7 +135,7 @@ krb4_life_to_time(u_int32_t start, int life_)
  * the table for the smallest entry *greater than or equal* to the
  * requested entry.
  */
-int krb_time_to_life(u_int32_t start, u_int32_t end)
+int krb_time_to_life(uint32_t start, uint32_t end)
 {
     int i;
     long lifetime = end - start;

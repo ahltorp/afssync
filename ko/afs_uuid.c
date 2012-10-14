@@ -79,6 +79,8 @@
 
 #include <fs.h>
 
+#include <sys/file.h>
+
 #include "afs_uuid.h"
 
 #ifdef RCSID

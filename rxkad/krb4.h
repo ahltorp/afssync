@@ -73,7 +73,7 @@ typedef struct krb_principal{
 struct ktext {
     unsigned int length;		/* Length of the text */
     unsigned char dat[MAX_KTXT_LEN];	/* The data itself */
-    u_int32_t mbz;		/* zero to catch runaway strings */
+    uint32_t mbz;		/* zero to catch runaway strings */
 };
 
 typedef struct ktext *KTEXT;

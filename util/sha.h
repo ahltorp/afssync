@@ -49,7 +49,7 @@
 
 struct sha {
   unsigned int sz[2];
-  u_int32_t counter[5];
+  uint32_t counter[5];
   unsigned char save[64];
 };
 

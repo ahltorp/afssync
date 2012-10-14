@@ -10,6 +10,10 @@ OS_LINKFLAGS = -Wl,-F. -bundle -undefined dynamic_lookup
 #OS_CFLAGS = -I/usr/include/python2.7 -std=gnu99 -fPIC
 #OS_LINKFLAGS = -pthread -shared -Wl,-O1 -Wl,-Bsymbolic-functions -Wl,-Bsymbolic-functions -Wl,-z,relro -Wl,-rpath,$(HEIMDAL)/lib
 
+# Solaris 10
+#OS_CFLAGS = -I/usr/include/python2.6 -std=gnu99 -fPIC -DHAVE_NET_IF_TYPES_H=1 -DHAVE_POSIX_SIGNALS=1 -D HAVE_SYS_SOCKIO_H=1 -I $(HEIMDAL)/include/roken
+#OS_LINKFLAGS = -shared -Wl,-rpath,$(HEIMDAL)/lib
+
 CFLAGS = -g -I . -I include -I rx -I lwp -I bufdir -I rxdef -I ko -I util -I rxkad -I $(HEIMDAL)/include -I lib -DHAVE_CONFIG_H $(OS_CFLAGS)
 
 LIBKO=ko/afs_uuid.o \
