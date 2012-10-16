@@ -5,7 +5,6 @@ import pprint
 import os
 import sqlite3
 import stat
-import tempfile
 import sys
 
 from util import *
@@ -69,18 +68,6 @@ serverfilesdict = dict([(e["path"], e) for e in serverfiles])
 #print serverfilesdict.keys()
 
 allfiles = sorted(set(localfilesdict.keys()) | set(getbasefilesdict().keys()) | set(serverfilesdict.keys()))
-
-def fetchfile(basepath, serverfile):
-    (fd, name) = tempfile.mkstemp(dir=basepath+"/.afssync/fetched")
-    fid = serverfile["fid"]
-
-    f = os.fdopen(fd, "wb")
-    (status, checksum) = fs.getfile(fid, serverfile["status"]["length"], f)
-    f.close()
-    assert serverfile["status"]["length"] == status["length"]
-    assert serverfile["status"]["dataversion"] == status["dataversion"]
-    status["checksum"] = checksum
-    return (name, status)
 
 
 

@@ -1,11 +1,24 @@
 import os
 import stat
 import sys
+import tempfile
 from util import *
 from afsutil import *
 
 basefiles = []
 basefilesdict = {}
+
+def fetchfile(fs, basepath, serverfile):
+    (fd, name) = tempfile.mkstemp(dir=basepath+"/.afssync/fetched")
+    fid = serverfile["fid"]
+
+    f = os.fdopen(fd, "wb")
+    (status, checksum) = fs.getfile(fid, serverfile["status"]["length"], f)
+    f.close()
+    assert serverfile["status"]["length"] == status["length"]
+    assert serverfile["status"]["dataversion"] == status["dataversion"]
+    status["checksum"] = checksum
+    return (name, status)
 
 def readbasefiles(cursor):
     cursor.execute('select vnode, uniq, filetype, dataversion, path, mode, localmodtime, length, checksum from files where deleted is null')
@@ -62,7 +75,7 @@ def conflictresolution(fs, basepath, name, localfile, serverfile):
     print "resolve file", name, localfiletype, serverfiletype
     name = name.rstrip("/")
     if serverfiletype in [1, 2, 3]:
-        #(tempname, status) = fetchfile(basepath, serverfile)
+        #(tempname, status) = fetchfile(fs, basepath, serverfile)
         if localfile["mtime"] > serverfile["status"]["modtime"]:
             # XXX check that new name is unused
             arlalow.rename(fs.fsconn, serverfile["parent"], serverfile["name"], serverfile["parent"], serverfile["name"] + ";serverrenamed-1")
@@ -73,10 +86,10 @@ def conflictresolution(fs, basepath, name, localfile, serverfile):
     else:
         raise Exception("Cannot handle symlinks yet")
 
-def fetchfileandupdate(conn, cursor, basepath, name, serverfile):
+def fetchfileandupdate(conn, cursor, fs, basepath, name, serverfile):
     serverfiletype = serverfile["status"]["type"]
     if serverfiletype == 1:
-        (tempname, status) = fetchfile(basepath, serverfile)
+        (tempname, status) = fetchfile(fs, basepath, serverfile)
         os.chmod(tempname, status["mode"] & 0777)
         os.utime(tempname, (status["modtime"], status["modtime"]))
         os.rename(tempname, basepath + "/" + name)
@@ -101,7 +114,7 @@ def synconefile(conn, cursor, fs, basepath, name, localfile, serverfile, basefil
     
     if places == (False, False, True):
         print name, "new on server"
-        fetchfileandupdate(conn, cursor, basepath, name, serverfile)
+        fetchfileandupdate(conn, cursor, fs, basepath, name, serverfile)
         readbasefiles(cursor)
 #    elif places == (False, True, False):
 #        pass
@@ -153,7 +166,7 @@ def synconefile(conn, cursor, fs, basepath, name, localfile, serverfile, basefil
             if changes == (False, False):
                 pass
             elif changes == (False, True):
-                fetchfileandupdate(conn, cursor, basepath, name, serverfile)
+                fetchfileandupdate(conn, cursor, fs, basepath, name, serverfile)
                 readbasefiles(cursor)
             elif changes == (True, False):
                 sendfileandupdate(basepath, name, localfile, parentfid, serverfile=serverfile)
