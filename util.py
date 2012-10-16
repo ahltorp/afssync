@@ -1,6 +1,7 @@
 import hashlib
 import os
 import io
+import stat
 
 def checksumfile(path):
     m = hashlib.sha1()
@@ -48,3 +49,13 @@ def getlocalfiles(path):
             direntry.update(getlocalfileinfo(path, direntry))
             filelist.append(direntry)
     return filelist
+
+def mode_to_filetype(mode):
+    if stat.S_ISREG(mode):
+        return 1
+    if stat.S_ISDIR(mode):
+        return 2
+    if stat.S_ISLNK(mode):
+        return 3
+    raise Exception("Unknown file type: mode %o", mode)
+
