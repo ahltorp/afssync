@@ -1,6 +1,6 @@
 import arlalow
 
-from util import chunks
+from util import chunks, checksumcontents
 
 def isdir(fid):
     return fid[1] % 2 == 1
@@ -57,6 +57,6 @@ class fileserver:
         return status
 
     def getfile(self, fid, length, localfile):
-        contents = arlalow.fetchfile(self.fsconn, fid, 0, serverfile["status"]["length"])
+        contents = arlalow.fetchfile(self.fsconn, fid, 0, length)
         localfile.write(contents["contents"])
         return (contents["status"], checksumcontents(contents["contents"]))

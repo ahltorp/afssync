@@ -98,7 +98,8 @@ def fetchfile(basepath, serverfile):
     (fd, name) = tempfile.mkstemp(dir=basepath+"/.afssync/fetched")
     fid = serverfile["fid"]
 
-    (status, checksum) = fs.getfile(fid, serverfile["status"]["length"], os.fdopen(fd, "wb"))
+    f = os.fdopen(fd, "wb")
+    (status, checksum) = fs.getfile(fid, serverfile["status"]["length"], f)
     f.close()
     assert serverfile["status"]["length"] == status["length"]
     assert serverfile["status"]["dataversion"] == status["dataversion"]
