@@ -190,8 +190,12 @@ arla_VL_GetEntryByNameN(PyObject *self, PyObject *args)
     }
 
     struct nvldbentry nvldbentry;
-    int error;
-    error = VL_GetEntryByNameN(conn->conn, volumename, &nvldbentry);
+    int ret;
+    ret = VL_GetEntryByNameN(conn->conn, volumename, &nvldbentry);
+    if (ret) {
+        PyErr_Format(PyExc_TypeError, "Volserver GetEntryByNameN: error %d(%s)", ret, koerr_gettext(ret));
+        return NULL;
+    }
 
     PyObject *pyDictionary = PyDict_New();
     PyDict_SetItem(pyDictionary, PyUnicode_FromString("firstServer"), PyInt_FromLong(nvldbentry.serverNumber[0]));
